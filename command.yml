@@ -1,0 +1,89 @@
+commands:
+  - name: netlas-go
+    cmd: |
+      for i in $(cat {domains}|tr "\n" " ");do ./utls-tools/netlas-go domain -d "*.$i" | jq -r '.[0] | .[] | .[]' >> {output};done
+    output: subdomain-netlas-go.txt
+
+  - name: subfinder
+    cmd: |
+      ./utls-tools/subfinder -all -dL {domains} -nc -silent -o {output} >> /dev/null
+    output: subfinder-domian.txt
+
+  - name: assetfinder
+    cmd: |
+      cat {domains} | ./utls-tools/assetfinder -subs-only | anew -q {output} >> /dev/null
+    output: assetfinder-domains.txt
+
+  - name: haktrails
+    cmd: |
+      cat {domains} | ./utls-tools/haktrails subdomains | anew -q {output} >> /dev/null
+    output: haktrails-domains.txt
+
+  - name: chaos-client
+    cmd: |
+      ./utls-tools/chaos-client -dL {domains} -o {output} -key 918************f204cf4 >> /dev/null
+    output: chaos-domains.txt
+
+  - name: findomain
+    cmd: |
+      ./utls-tools/findomain -r -q -f {domains} | anew -q {output} >> /dev/null
+    output: findomain-domains.txt
+
+  - name: csprecon
+    cmd: |
+      cat {domains} | ./utls-tools/csprecon | anew -q {output} >> /dev/null
+    output: csprecon-domains.txt
+
+  - name: gr-subdomains
+    cmd: |
+      gr-subdomains -l {domains} -o {output} >> /dev/null
+    output: gr-subdomains-domains.txt
+
+  - name: amass
+    cmd: |
+      ./utls-tools/amass enum -if config.yaml  -df {domains} -o {output} >> /dev/null
+    output: amass-domain.txt
+
+  - name: crtsh
+    cmd: |
+      for i in $(cat {domains}|tr "\n" " ");do ./utls-tools/crtsh -q $i|grep "  Name: " >> {output} ;done
+    output: crtsh-domains.txt
+
+  - name: certspotter
+    cmd: |
+      for i in $(cat {domains}|tr "\n" " ");do curl -s "https://api.certspotter.com/v1/issuances?domain=$i&include_subdomains=true&expand=dns_names"  | jq .[].dns_names | tr -d '[]"\n ' | tr ',' '\n' >> {output} ;done
+    output: certspotter-domains.txt
+
+  - name: skanuvaty
+    cmd: |
+      for i in $(cat {domains}|tr "\n" " ");do ./utls-tools/skanuvaty -t $i -c 16 -o {output}-$i >> /dev/null; cat {output}-$i | jq -r '.subdomains[].name' |anew -q {output};rm -rf {output}-$i;done
+    output: subdomain.txt
+    
+# ==================================================
+# ==         URL 收集命令 (新添加)              ==
+# ==================================================
+
+  - name: xurlfind3r-urls
+    cmd: |
+      ./urls-tools/xurlfind3r -l {domains} --include-subdomains  -o {output} -s
+    output: xurlfind3r-domains-urls.txt
+
+  - name: waybackurls-versions
+    cmd: |
+      cat {domains} | ./urls-tools/waybackurls --get-versions | anew -q {output}
+    output: waybackurls-urls-result.txt
+
+  - name: gau-urls
+    cmd: |
+      cat {domains} | ./urls-tools/gau -subs --blacklist png,jpg,gif,jpeg,swf,woff,gif,svg,ico,css,woff2,tif,tiff,ttf,rmvb,wmv,rm,3gp,mov,asf,mkv,mpg,mpeg,m3u8,f4v,flv | anew -q {output}
+    output: gau-results.txt
+
+  - name: gauplus-urls
+    cmd: |
+      cat {domains} | ./urls-tools/gauplus -b png,jpg,gif,jpeg,swf,woff,gif,svg,ico,css,woff2,tif,tiff,ttf,rmvb,wmv,rm,3gp,mov,asf,mkv,mpg,mpeg,m3u8,f4v,flv -random-agent --subs | anew -q {output}
+    output: gauplus-results.txt
+
+  - name: urlfinder-all
+    cmd: |
+      ./urls-tools/urlfinder -d {domains} -all -o {output} -silent
+    output: urlfinder-domains.txt
